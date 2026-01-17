@@ -63,9 +63,15 @@ add_library(axiom_codegen STATIC
 )
 target_link_libraries(axiom_codegen PUBLIC axiom_frontend ${LLVM_LIBS})
 
+# Axiom REPL library
+add_library(axiom_repl STATIC
+    src/repl/repl.cpp
+)
+target_link_libraries(axiom_repl PUBLIC axiom_codegen)
+
 # Axiom compiler executable
 add_executable(axiom src/main.cpp)
-target_link_libraries(axiom PRIVATE axiom_codegen)
+target_link_libraries(axiom PRIVATE axiom_repl)
 
 # Tests
 if(AXIOM_BUILD_TESTS)
