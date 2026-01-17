@@ -4,7 +4,12 @@
  */
 
 #include "type_checker.hpp"
+#include "types.hpp"
+#include "symbol_table.hpp"
+#include "../parser/ast.hpp"
+#include "../lexer/token.hpp"
 #include <sstream>
+#include <algorithm>
 
 namespace axiom {
 namespace semantic {

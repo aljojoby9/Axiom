@@ -31,9 +31,8 @@ llvm_map_components_to_libnames(LLVM_LIBS
     core
     support
     irreader
-    x86info
-    x86codegen
-    x86asmparser
+    native
+    target
 )
 
 # Compiler warnings

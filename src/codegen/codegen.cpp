@@ -95,11 +95,45 @@ bool CodeGenerator::write_ir(const std::string& filename) {
     return true;
 }
 
-bool CodeGenerator::compile_to_object(const std::string& /*filename*/) {
-    // TODO: Implement using new LLVM API
-    // The createTargetMachine API has changed in LLVM 21
-    error("Object file generation not yet implemented");
-    return false;
+bool CodeGenerator::compile_to_object(const std::string& filename) {
+    auto target_triple = llvm::sys::getDefaultTargetTriple();
+    
+    std::string err;
+    auto target = llvm::TargetRegistry::lookupTarget(std::string(target_triple), err);
+    if (!target) {
+        error("Could not get target: " + err);
+        return false;
+    }
+    
+    auto cpu = "generic";
+    auto features = "";
+    
+    llvm::TargetOptions opt;
+    auto target_machine = target->createTargetMachine(
+        std::string(target_triple), cpu, features, opt, std::optional<llvm::Reloc::Model>()
+    );
+    
+    module_->setDataLayout(target_machine->createDataLayout());
+    
+    std::error_code ec;
+    llvm::raw_fd_ostream dest(filename, ec, llvm::sys::fs::OF_None);
+    if (ec) {
+        error("Could not open file: " + ec.message());
+        return false;
+    }
+    
+    llvm::legacy::PassManager pass;
+    auto file_type = llvm::CodeGenFileType::ObjectFile;
+    
+    if (target_machine->addPassesToEmitFile(pass, dest, nullptr, file_type)) {
+        error("Target machine cannot emit object file");
+        return false;
+    }
+    
+    pass.run(*module_);
+    dest.flush();
+    
+    return true;
 }
 
 // === Type Conversion ===

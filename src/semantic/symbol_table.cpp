@@ -69,6 +69,8 @@ void SymbolTable::init_builtins() {
     register_type("f64", f64_type());
     register_type("char", char_type());
     register_type("str", string_type());
+    register_type("int", i64_type());
+    register_type("float", f64_type());
     
     // Register built-in functions
     // print(value: any) -> void
@@ -145,7 +147,8 @@ TypePtr SymbolTable::lookup_type(const std::string& name) const {
 }
 
 void SymbolTable::register_type(const std::string& name, TypePtr type) {
-    type_registry_[name] = std::move(type);
+    type_registry_[name] = type;
+    define(name, SymbolKind::Type, type);
 }
 
 bool SymbolTable::in_loop() const {

@@ -223,13 +223,21 @@ int run_compile(const std::string& source, const std::string& filename) {
         return 1;
     }
     
-    std::cout << "\033[32m✓ Compilation successful\033[0m\n";
-    std::cout << "  Declarations: " << program.declarations.size() << "\n";
+    // Change extension to .obj
+    std::string obj_file = filename;
+    size_t lastindex = obj_file.find_last_of("."); 
+    if (lastindex != std::string::npos) {
+        obj_file = obj_file.substr(0, lastindex); 
+    }
+    obj_file += ".obj";
     
-    // TODO: Write object file and link
-    std::cout << "\n\033[33mnote\033[0m: Execution not yet implemented. Use 'emit-ir' to see generated LLVM IR.\n";
+    if (codegen.compile_to_object(obj_file)) {
+        std::cout << "\033[32m✓ Compilation successful\033[0m\n";
+        std::cout << "  Generated: " << obj_file << "\n";
+        return 0;
+    }
     
-    return 0;
+    return 1;
 }
 
 int main(int argc, char* argv[]) {
