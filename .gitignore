@@ -1,0 +1,61 @@
+# Build directories
+build/
+cmake-build-*/
+out/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.vs/
+*.user
+*.suo
+
+# Compiled binaries
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.o
+*.obj
+
+# Generated files
+compile_commands.json
+CMakeCache.txt
+CMakeFiles/
+Makefile
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Package manager
+vcpkg_installed/
+node_modules/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Test artifacts
+Testing/
+CTestTestfile.cmake
+
+# Credentials and secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets/
+credentials/
+
+# Personal configuration
+.gemini/
+.agent/
