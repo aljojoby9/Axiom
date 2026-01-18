@@ -68,9 +68,15 @@ add_library(axiom_repl STATIC
 )
 target_link_libraries(axiom_repl PUBLIC axiom_codegen)
 
+# Axiom Driver library
+add_library(axiom_driver STATIC
+    src/driver/driver.cpp
+)
+target_link_libraries(axiom_driver PUBLIC axiom_codegen)
+
 # Axiom compiler executable
 add_executable(axiom src/main.cpp)
-target_link_libraries(axiom PRIVATE axiom_repl)
+target_link_libraries(axiom PRIVATE axiom_repl axiom_driver)
 
 # Tests
 if(AXIOM_BUILD_TESTS)

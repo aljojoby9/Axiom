@@ -12,6 +12,7 @@
 #include "semantic/type_checker.hpp"
 #include "codegen/codegen.hpp"
 #include "repl/repl.hpp"
+#include "driver/driver.hpp"
 
 void print_usage(const char* program_name) {
     std::cout << R"(
@@ -26,7 +27,8 @@ FLAGS:
 
 COMMANDS:
     axiom                     Start interactive REPL
-    axiom <file.ax>           Compile and run a file
+    axiom <file.ax>           Compile to object file
+    axiom build <file.ax>     Build executable (compile + link)
     axiom repl                Start interactive REPL
     axiom check <file.ax>     Type-check without compiling
     axiom parse <file.ax>     Parse and show AST info
@@ -35,7 +37,7 @@ COMMANDS:
 
 EXAMPLES:
     axiom                     # Start REPL
-    axiom hello.ax            # Compile and run
+    axiom build hello.ax      # Compile and link to hello.exe
     axiom check mymodule.ax   # Type-check only
     axiom emit-ir main.ax     # Show LLVM IR
 
@@ -313,7 +315,23 @@ int main(int argc, char* argv[]) {
         return run_emit_ir(source, argv[2]);
     }
     
-    // Default: compile file
+    // Build command (compile + link)
+    if (arg1 == "build") {
+        if (argc < 3) {
+            std::cerr << "\033[31merror\033[0m: 'build' requires a filename\n";
+            return 1;
+        }
+        axiom::CompilerConfig config;
+        config.input_file = argv[2];
+        config.verbose = false;
+        config.emit_obj = true;
+        config.run_linker = true;
+        
+        axiom::Driver driver(config);
+        return driver.run();
+    }
+    
+    // Default: compile file to object only
     std::string source = read_file(arg1);
     if (source.empty()) return 1;
     return run_compile(source, arg1);
