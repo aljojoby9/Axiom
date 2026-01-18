@@ -87,10 +87,14 @@ int Driver::compile_to_object() {
     // Write object file
     std::string obj_file = get_output_filename(".obj");
     if (config_.verbose) {
-        std::cout << "Generating " << obj_file << "\n";
+        std::cout << "Generating " << obj_file;
+        if (config_.optimization_level > 0) {
+            std::cout << " (optimization level " << config_.optimization_level << ")";
+        }
+        std::cout << "\n";
     }
     
-    if (!gen.compile_to_object(obj_file)) {
+    if (!gen.compile_to_object(obj_file, config_.optimization_level)) {
         std::cerr << "\033[31merror\033[0m: Failed to generate object file\n";
         return 1;
     }

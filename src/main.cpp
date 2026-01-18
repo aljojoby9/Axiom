@@ -35,9 +35,17 @@ COMMANDS:
     axiom lex <file.ax>       Tokenize and show tokens
     axiom emit-ir <file.ax>   Emit LLVM IR
 
+BUILD OPTIONS:
+    -O0                       No optimization (default)
+    -O1                       Basic optimization
+    -O2                       Standard optimization
+    -O3                       Aggressive optimization
+    -v, --verbose             Verbose output
+
 EXAMPLES:
     axiom                     # Start REPL
     axiom build hello.ax      # Compile and link to hello.exe
+    axiom build -O2 main.ax   # Build with optimizations
     axiom check mymodule.ax   # Type-check only
     axiom emit-ir main.ax     # Show LLVM IR
 
@@ -321,11 +329,31 @@ int main(int argc, char* argv[]) {
             std::cerr << "\033[31merror\033[0m: 'build' requires a filename\n";
             return 1;
         }
+        
         axiom::CompilerConfig config;
-        config.input_file = argv[2];
         config.verbose = false;
         config.emit_obj = true;
         config.run_linker = true;
+        config.optimization_level = 0;
+        
+        // Parse remaining arguments
+        for (int i = 2; i < argc; i++) {
+            std::string arg = argv[i];
+            if (arg == "-O0") config.optimization_level = 0;
+            else if (arg == "-O1") config.optimization_level = 1;
+            else if (arg == "-O2") config.optimization_level = 2;
+            else if (arg == "-O3") config.optimization_level = 3;
+            else if (arg == "-v" || arg == "--verbose") config.verbose = true;
+            else if (arg[0] != '-') config.input_file = arg;
+            else {
+                std::cerr << "\033[33mwarning\033[0m: Unknown flag '" << arg << "'\n";
+            }
+        }
+        
+        if (config.input_file.empty()) {
+            std::cerr << "\033[31merror\033[0m: No input file specified\n";
+            return 1;
+        }
         
         axiom::Driver driver(config);
         return driver.run();

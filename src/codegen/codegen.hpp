@@ -20,6 +20,10 @@
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/IR/LegacyPassManager.h>
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Passes/StandardInstrumentations.h>
+#include <llvm/Analysis/LoopAnalysisManager.h>
+#include <llvm/Analysis/CGSCCPassManager.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/TargetSelect.h>
@@ -76,9 +80,17 @@ public:
     bool write_ir(const std::string& filename);
     
     /**
-     * @brief Compile to object file
+     * @brief Run optimization passes on the module
+     * @param level 0=none, 1=basic, 2=default, 3=aggressive
      */
-    bool compile_to_object(const std::string& filename);
+    void optimize(int level);
+    
+    /**
+     * @brief Compile to object file
+     * @param filename Output file path
+     * @param opt_level Optimization level (0-3)
+     */
+    bool compile_to_object(const std::string& filename, int opt_level = 0);
     
     /**
      * @brief Check for errors

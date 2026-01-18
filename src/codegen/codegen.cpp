@@ -95,7 +95,41 @@ bool CodeGenerator::write_ir(const std::string& filename) {
     return true;
 }
 
-bool CodeGenerator::compile_to_object(const std::string& filename) {
+void CodeGenerator::optimize(int level) {
+    if (level <= 0) return;  // No optimization
+    
+    // Create pass builder with optimization level
+    llvm::PassBuilder pb;
+    
+    // Create analysis managers
+    llvm::LoopAnalysisManager lam;
+    llvm::FunctionAnalysisManager fam;
+    llvm::CGSCCAnalysisManager cgam;
+    llvm::ModuleAnalysisManager mam;
+    
+    // Register analysis passes
+    pb.registerModuleAnalyses(mam);
+    pb.registerCGSCCAnalyses(cgam);
+    pb.registerFunctionAnalyses(fam);
+    pb.registerLoopAnalyses(lam);
+    pb.crossRegisterProxies(lam, fam, cgam, mam);
+    
+    // Build optimization pipeline based on level
+    llvm::OptimizationLevel opt_level;
+    switch (level) {
+        case 1: opt_level = llvm::OptimizationLevel::O1; break;
+        case 2: opt_level = llvm::OptimizationLevel::O2; break;
+        default: opt_level = llvm::OptimizationLevel::O3; break;
+    }
+    
+    llvm::ModulePassManager mpm = pb.buildPerModuleDefaultPipeline(opt_level);
+    mpm.run(*module_, mam);
+}
+
+bool CodeGenerator::compile_to_object(const std::string& filename, int opt_level) {
+    // Run optimization passes first
+    optimize(opt_level);
+    
     auto target_triple = llvm::sys::getDefaultTargetTriple();
     
     std::string err;
@@ -109,8 +143,16 @@ bool CodeGenerator::compile_to_object(const std::string& filename) {
     auto features = "";
     
     llvm::TargetOptions opt;
+    
+    // Set code generation optimization level
+    llvm::CodeGenOptLevel cgo_level = llvm::CodeGenOptLevel::None;
+    if (opt_level == 1) cgo_level = llvm::CodeGenOptLevel::Less;
+    else if (opt_level == 2) cgo_level = llvm::CodeGenOptLevel::Default;
+    else if (opt_level >= 3) cgo_level = llvm::CodeGenOptLevel::Aggressive;
+    
     auto target_machine = target->createTargetMachine(
-        std::string(target_triple), cpu, features, opt, std::optional<llvm::Reloc::Model>()
+        std::string(target_triple), cpu, features, opt, 
+        std::optional<llvm::Reloc::Model>(), std::nullopt, cgo_level
     );
     
     module_->setDataLayout(target_machine->createDataLayout());
